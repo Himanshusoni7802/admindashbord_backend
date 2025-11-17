@@ -11,7 +11,7 @@ export const AddProduct = async(req,res)=>{
         const product = await Product.create(data);
 
         res.status(200).json({
-              data
+              data:product
         })
 
 
@@ -54,7 +54,7 @@ export const updateProduct = async(req,res)=>{
          const updatepro = await Product.findByIdAndUpdate(id,data,{new : true})
 
 
-        res.status(200).json({updatepro});
+        res.status(200).json({product : updatepro});
 
 
     } catch (error) {
