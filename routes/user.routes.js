@@ -1,31 +1,30 @@
 import express from "express";
-import { Login, Register, Updateuser, deleteUser, getAllUser } from "../controllers/user.controller.js";
+import authMiddleware from "../middleware/auth.middleware.js";
+import {
+  Login,
+  Register,
+  Updateuser,
+
+  getAllUser,
+  logout,
+} from "../controllers/user.controller.js";
+import { requireRole } from "../middleware/role.middleware.js";
 
 
-const router = express.Router() ;
+const router = express.Router();
+
+router.post("/register", Register);
+
+router.post("/login", Login);
+
+router.get("/getusers",authMiddleware, requireRole("admin"), getAllUser);
+
+router.patch("/updateuser/:id", Updateuser);
+
+//router.delete("/deleteuser", deleteUser);
 
 
-router.post('/register',Register);
+router.delete('/logout',logout);
 
 
-router.post('/login',Login);
-
-
-router.get('/getusers',getAllUser);
-
-router.put('/updateuser/:id',Updateuser);
-
-
-router.delete('/deleteuser/:id',deleteUser);
-
-
-
-
-
-
-
-
-
-
-
-export default router ;
+export default router;

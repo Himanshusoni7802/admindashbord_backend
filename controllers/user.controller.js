@@ -1,9 +1,10 @@
 import User from "../models/user.model.js";
 
 import bcrypt from "bcryptjs";
-import express from "express";
 
 import jwt from "jsonwebtoken";
+
+import { createAccessToken, createRefreshToken } from "../utils/token.js";
 
 export const Register = async (req, res) => {
   try {
@@ -20,9 +21,31 @@ export const Register = async (req, res) => {
 
     user.password = hashedpassword;
 
+
+
     await user.save();
 
-    res.status(200).json(user);
+    // res.cookie("token", token, {
+    //   httpOnly: true,
+    //   secure: false,
+    //   sameSite: "lax",
+    //   maxAge: 24 * 60 * 60 * 1000,
+    // });
+
+
+
+
+
+      await  user.save();
+
+
+
+
+
+
+    res.status(200).json({user});
+
+
   } catch (error) {
     console.log(error);
   }
@@ -35,7 +58,7 @@ export const Login = async (req, res) => {
     if (!email || !password || !role) {
       return res
         .status(400)
-        .json({ message: "Email, password & role are required." });
+        .json({ message: "Email, password  are required." });
     }
 
     const user = await User.findOne({ email });
@@ -60,28 +83,35 @@ export const Login = async (req, res) => {
     }
 
     // Create JWT Token
-    const token = jwt.sign(
-      { userId: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+
+    const refreshtoken = createRefreshToken({userId:user._id, role:user.role})
+
+    
+    const accesstoken = createAccessToken({userId :user._id ,role:user.role})
+
+
+
+
 
     // Set cookie
-    res.cookie("token", token, {
+    res.cookie("token", refreshtoken, {
       httpOnly: true,
-      secure: false, // change to false during localhost
+      secure: false,
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.status(200).json({
       message: "Login successful",
-      token,
+
       role: user.role,
+      token:accesstoken,
+
       user: {
-        id: user._id,
+        _id: user._id,
         name: user.name,
         email: user.email,
+
       },
     });
   } catch (error) {
@@ -92,7 +122,7 @@ export const Login = async (req, res) => {
 
 export const getAllUser = async (req, res) => {
   try {
-    const users = await User.find({});
+    const users = await User.find({ role: "user" });
 
     if (!users) {
       return res.status(404).json({ message: "internal server error " });
@@ -107,11 +137,13 @@ export const getAllUser = async (req, res) => {
 export const Updateuser = async (req, res) => {
   try {
     const { id } = req.params;
+
     const data = req.body;
 
-    console.log("🟢 Backend hit /update:", id, data);
-
-    const updatedUser = await User.findByIdAndUpdate(id, data, { new: true });
+    const updatedUser = await User.findOneAndUpdate({ _id: id }, data, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
@@ -122,7 +154,6 @@ export const Updateuser = async (req, res) => {
       user: updatedUser,
     });
   } catch (error) {
-    console.error(" Update Error:", error);
     res.status(500).json({ message: "Server error", error });
   }
 };
@@ -131,15 +162,28 @@ export const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
 
-    console.log(id);
-
-    const deletedUser = await User.findByIdAndDelete(id);
+    const deletedUser = await User.deleteMany();
 
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
 
     res.json({ message: "User deleted successfully", deletedUser });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+      path: "/",
+    });
+
+    return res.json({ message: "user logged out successfully" });
   } catch (error) {
     console.log(error);
   }

@@ -15,6 +15,8 @@ import { connectDb } from './db/db.js';
 import userRouter from "./routes/user.routes.js"
 
 import productRouter from "./routes/product.routes.js";
+import cookieParser from "cookie-parser";
+
 
 
 import bodyParser from 'body-parser';
@@ -26,7 +28,17 @@ const app = express();
 
 app.use(express.json());
 
-app.use(cors())
+app.use(cookieParser());
+
+
+
+app.use(
+     cors({
+       origin: "http://localhost:5173",   // your frontend URL
+       credentials: true,
+       methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+     })
+   );
 
 
 app.use(bodyParser.json()); // for parsing application/json

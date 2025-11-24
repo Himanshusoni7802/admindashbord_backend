@@ -4,23 +4,24 @@
 
 import express from "express";
 import { AddProduct, deleteProduct, findAllProduct, updateProduct,productFilter } from "../controllers/product.controller.js";
+import authMiddleware from "../middleware/auth.middleware.js";
 
 const router = express.Router() ;
 
 
 
-router.post('/createproduct',AddProduct);
+router.post('/createproduct',authMiddleware,  AddProduct);
 
 
-router.get('/allproduct',findAllProduct);
+router.get('/allproduct',authMiddleware,findAllProduct);
 
-router.post('/updateproduct/:id',updateProduct);
-
-
-router.delete('/delete/:id',deleteProduct);
+router.post('/updateproduct/:id',authMiddleware,updateProduct);
 
 
-router.get('/findproduct/:category',productFilter)
+router.delete('/delete/:id',authMiddleware,deleteProduct);
+
+
+//router.get('/findproduct/:category',productFilter)
 
 
 
